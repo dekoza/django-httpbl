@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.http import HttpResponseNotFound, HttpResponsePermanentRedirect
+from my_project.httpbl.models import HttpBLLog
 import socket
 
 class HttpBLMiddleware(object):
@@ -23,22 +24,30 @@ class HttpBLMiddleware(object):
    def process_request(self, request):
 
       if settings.HTTPBLKEY:
-         ip = request.META.get('REMOTE_ADDR')
-         iplist = ip.split('.')
-         iplist.reverse()
+         self.ip = request.META.get('REMOTE_ADDR')
+         self.iplist = self.ip.split('.')
+         self.iplist.reverse()
 
-         domain = 'dnsbl.httpbl.org'
+         self.domain = 'dnsbl.httpbl.org'
 
-         query = settings.HTTPBLKEY + "." + ".".join(iplist) + "." + domain
+         self.query = settings.HTTPBLKEY + "." + ".".join(self.iplist) + "." + self.domain
             
          try:
-            result = socket.gethostbyname(query)
+            self.result = socket.gethostbyname(self.query)
          except socket.gaierror:
             return None
 
-         resultlist = result.split('.')
+         self.resultlist = self.result.split('.')
 
-         if (int(resultlist[1]) <= self.age and int(resultlist[2]) >= self.threat and int(resultlist[3]) & self.classification > 0):
+         if (int(self.resultlist[1]) <= self.age and 
+             int(self.resultlist[2]) >= self.threat and 
+             int(self.resultlist[3]) & self.classification > 0):
+
+            self.log = HttpBLLog (ip = self.ip,
+                                  user_agent = request.META.get('HTTP_USER_AGENT'),
+                                  httpbl = self.result)
+            self.log.save()
+
             if settings.HTTPBLREDIRECT:
                return HttpResponsePermanentRedirect(settings.HTTPBLREDIRECT)
             else:
