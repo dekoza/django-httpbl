@@ -14,7 +14,7 @@ class HttpBLMiddleware:
 		self.threat = getattr(settings, 'HTTPBL_THREAT', 30)
 		self.classification = getattr(settings, 'HTTPBL_CLASS', 7)
 		self.api_key = getattr(settings, 'HTTPBL_KEY', False)
-		self.redirect = getattr(settings, 'HTTPBL_REDIRECT', False)
+		self.quicklink = getattr(settings, 'HTTPBL_QUICKLINK', False)
 		self.logging = getattr(settings, 'HTTBL_LOG_BLOCKED', True)
 
 	def is_threat(self, request):
@@ -50,16 +50,15 @@ class HttpBLMiddleware:
 				log = HttpBLLog(ip = self.ip, user_agent = request.META.get('HTTP_USER_AGENT'), result = self.result)
 				log.save()
 
-			if self.redirect:
-				return HttpResponsePermanentRedirect(settings.HTTPBL_REDIRECT)
+			if self.quicklink:
+				return HttpResponsePermanentRedirect(self.quicklink)
 			else:
 				return HttpResponseNotFound('<h1>Not Found</h1>')
-		else:
-			return None
+		return None
 
 
 	def process_template_response(self, request, response):
 		if not self.is_threat(request):
 			response.context_data['httpbl_suspicious'] = getattr(self, 'suspicious', False)
-			response.context_data['httpbl_quicklink'] =  getattr(settings, 'HTTPBL_REDIRECT', False)
+			response.context_data['httpbl_quicklink'] =  getattr(self, 'quicklink', False)
 		return response

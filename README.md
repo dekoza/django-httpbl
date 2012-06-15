@@ -28,7 +28,7 @@ Please refer to http://www.projecthoneypot.org/httpbl_api.php to fine tune your 
 
 * HTTPBL_KEY is a string containing your API Key from Project Honeypot.
 * HTTPBL_QUICKLINK is a string containing your QuickLink. This is optional but you are strongly encouraged to use it as it helps catch new spammers.
-* If you do NOT want to log all blocked hosts you should set HTTPB_BL to False (default: True)
+* If you do NOT want to log all blocked hosts you should set HTTPBL_LOG_BLOCKED to False (default: True)
 
 Host will be identified as spammer and blocked if:
 * the number of days since it was last seen in a honeypot is lower than value of HTTPBL_AGE (default 14)
