@@ -36,7 +36,7 @@ Host will be identified as spammer and blocked if:
 * and host's classification bitset contains the bitset set in HTTPBL_CLASS (default 7).
 
 For example if you want to block only Harversters and Comment Spammers but let in all Suspicious hosts,
-you should set your HTTBL_CLASS to 6.
+you should set your HTTPBL_CLASS to 6.
 
 TODO
 ----
