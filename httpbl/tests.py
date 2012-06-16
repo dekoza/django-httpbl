@@ -2,75 +2,73 @@
 from django.utils import unittest
 from django.test.client import RequestFactory
 from django.http import HttpResponseNotFound, HttpResponsePermanentRedirect
+from django.conf import settings
 
 from httpbl.middleware import HttpBLMiddleware
 
 
 class HttpBLMiddlewareTestCase(unittest.TestCase):
 	def setUp(self):
+		# prevent complaints about configuration if we only want to test the middleware
+		if not getattr(settings, 'HTTPBL_KEY', False):
+			setattr(settings, 'HTTPBL_KEY', 'abcdefghijkl') # This API key is legal ONLY for testing purposes.
 		self.mw = HttpBLMiddleware()
+		# Override other settings - we need a tight and consistent test case ;)
 		self.mw.age = 1
 		self.mw.threat = 1
-		self.mw.api_key = 'abcdefghijkl' # API key for testing purposes. You should probably use your own.
+		self.mw.classification = 1
 		self.mw.logging = False
 		self.quicklink = 'http://google.com/'
-		self.req = RequestFactory()
+		self.req = RequestFactory().get('/')
 
 	def test_threat(self):
 		"""
-		This should redirect to QuickLink or return HttpResponseNotFound.
+		Detecting a threat should redirect to QuickLink or return HttpResponseNotFound.
 		"""
-		self.mw.classification = 1
-		req = self.req.get('/')
-		req.environ['REMOTE_ADDR'] = '127.1.1.1'
-		threat = self.mw.is_threat(req)
+		self.req.environ['REMOTE_ADDR'] = '127.1.1.1'
+		threat = self.mw.is_threat(self.req)
 		self.assertTrue(threat)
 
-		response = self.mw.process_request(req)
+		response = self.mw.process_request(self.req)
 		self.assertIsInstance(response, HttpResponsePermanentRedirect)
 
 		self.mw.quicklink = False
-		response = self.mw.process_request(req)
+		response = self.mw.process_request(self.req)
 		self.assertIsInstance(response, HttpResponseNotFound)
 
 	def test_search_engine(self):
 		"""
-		This should allow the client in.
+		Search engines should be allowed.
 		"""
-		self.mw.classification = 1
-		req = self.req.get('/')
-		req.environ['REMOTE_ADDR'] = '127.1.1.0'
-		threat = self.mw.is_threat(req)
+		self.req.environ['REMOTE_ADDR'] = '127.1.1.0'
+		threat = self.mw.is_threat(self.req)
 		self.assertFalse(threat)
 
-		response = self.mw.process_request(req)
+		response = self.mw.process_request(self.req)
 		self.assertEqual(response, None)
 
 
 	def test_innocent(self):
 		"""
-		This should let the client in.
+		Innocent hosts should be allowed.
 		"""
-		self.mw.classification = 1
-		req = self.req.get('/')
-		req.environ['REMOTE_ADDR'] = '127.0.0.1'
-		threat = self.mw.is_threat(req)
+		self.req.environ['REMOTE_ADDR'] = '127.0.0.1'
+		threat = self.mw.is_threat(self.req)
 		self.assertFalse(threat)
 
-		response = self.mw.process_request(req)
+		response = self.mw.process_request(self.req)
 		self.assertEqual(response, None)
 
 
 	def test_suspicious(self):
 		"""
-		This should let the client in setting 'httpbl_suspicious' context variable to True.
+		Depending on the settings some Suspicious hosts can be let in.
+		In such cases 'httpbl_suspicious' context variable should be set to True.
 		"""
 		self.mw.classification = 2
-		req = self.req.get('/')
-		req.environ['REMOTE_ADDR'] = '127.1.1.1'
-		threat = self.mw.is_threat(req)
+		self.req.environ['REMOTE_ADDR'] = '127.1.1.1'
+		threat = self.mw.is_threat(self.req)
 		self.assertFalse(threat)
 
-		response = self.mw.process_request(req)
+		response = self.mw.process_request(self.req)
 		self.assertEqual(response, None)
-
