@@ -41,7 +41,7 @@ you should set your HTTPBL_CLASS to 6.
 TODO
 ----
 
-* Write some tests.
+* Write better tests.
 * Add more context variables?
 * Write an installer.
 
