@@ -2,6 +2,7 @@
 from django.utils import unittest
 from django.test.client import RequestFactory
 from django.http import HttpResponseNotFound, HttpResponsePermanentRedirect
+from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings
 
 from httpbl.middleware import HttpBLMiddleware
@@ -20,6 +21,11 @@ class HttpBLMiddlewareTestCase(unittest.TestCase):
 		self.mw.logging = False
 		self.quicklink = 'http://google.com/'
 		self.req = RequestFactory().get('/')
+
+	def test_config(self):
+		if getattr(settings, 'HTTPBL_KEY', False):
+			delattr(settings, 'HTTPBL_KEY')
+		self.assertRaises(ImproperlyConfigured, HttpBLMiddleware)
 
 	def test_threat(self):
 		"""
