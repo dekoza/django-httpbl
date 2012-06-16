@@ -24,7 +24,7 @@ class HttpBLMiddlewareTestCase(unittest.TestCase):
 		self.mw.threat = 1
 		self.mw.classification = 1
 		self.mw.logging = False
-		self.quicklink = 'http://google.com/'
+		self.mw.quicklink = 'http://google.com/'
 		self.req = RequestFactory().get('/')
 
 	def test_config(self):
