@@ -1,12 +1,14 @@
 #coding: utf-8
 from django.db import models
+from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext as _
 
 
 class HttpBLLog(models.Model):
-	ip = models.IPAddressField()
-	datetime = models.DateTimeField(auto_now_add=True)
-	user_agent = models.CharField(max_length=100)
-	result = models.IPAddressField(help_text='Refer to http://www.projecthoneypot.org/httpbl_api.php for explanation.')
+	ip = models.IPAddressField(_('IP'))
+	datetime = models.DateTimeField(_('Datetime'), auto_now_add=True)
+	user_agent = models.CharField(_('User Agent'), max_length=100)
+	result = models.IPAddressField(_('Result'), help_text=mark_safe(_('Refer to <a href="http://www.projecthoneypot.org/httpbl_api.php">HttpBL API</a> for explanation.')))
 
 	def __unicode__(self):
-		return "%s" % self.ip
+		return _("Blocked IP %(ip)s") % {'ip': self.ip}

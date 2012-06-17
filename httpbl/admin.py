@@ -10,7 +10,7 @@ class HttpBLLogAdmin(admin.ModelAdmin):
 	"""
 	date_hierarchy = 'datetime'
 	list_display = ('datetime', 'ip', 'result', 'user_agent')
-	list_display_links = list_display
+	list_display_links = list_display # do we really need to look at the details if everything is right there in the list?
 	readonly_fields = list_display
 
 

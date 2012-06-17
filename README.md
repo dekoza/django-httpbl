@@ -18,6 +18,7 @@ Prior to installing this middleware you should join http://projecthoneypot.org/ 
 There will be some context variables available, so you can additionally fine tune your templates to handle suspicious hosts, for example enabling CAPTCHAs or turning off POST for such clients.
 
 These context variables are:
+
 * 'httpbl_suspicious' if the host passed the test but was marked as suspicious.
 * 'httpbl_quicklink' is simply the URL you put in your settings (no need for separate templatetag then ;)
 

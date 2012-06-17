@@ -2,6 +2,7 @@
 from django.conf import settings
 from django.http import HttpResponseNotFound, HttpResponsePermanentRedirect
 from django.core.exceptions import ImproperlyConfigured
+from django.utils.translation import ugettext as _
 from httpbl.models import HttpBLLog
 import socket
 
@@ -13,7 +14,7 @@ class HttpBLMiddleware:
 	def __init__(self):
 		self.api_key = getattr(settings, 'HTTPBL_KEY', False)
 		if not self.api_key:
-			raise ImproperlyConfigured("Missing HTTPBL_KEY. Register on http://projecthoneypot.org to get one.")
+			raise ImproperlyConfigured(_("Missing HTTPBL_KEY. Register on http://projecthoneypot.org to get one."))
 		self.age = getattr(settings, 'HTTPBL_AGE', 14)
 		self.threat = getattr(settings, 'HTTPBL_THREAT', 30)
 		self.classification = getattr(settings, 'HTTPBL_CLASS', 7)
