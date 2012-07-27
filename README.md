@@ -44,5 +44,4 @@ TODO
 
 * Write better tests.
 * Add more context variables?
-* Write an installer.
 
