@@ -122,8 +122,22 @@ INSTALLED_APPS = (
     # 'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
+    'django_jenkins',
+)
+
+PROJECT_APPS = (
     'httpbl',
 )
+
+INSTALLED_APPS += PROJECT_APPS
+
+JENKINS_TASKS = (
+    'django_jenkins.tasks.with_coverage',
+    'django_jenkins.tasks.django_tests',
+    'django_jenkins.tasks.run_pep8',
+    'django_jenkins.tasks.run_pyflakes',
+)
+
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
