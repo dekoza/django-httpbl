@@ -22,6 +22,7 @@ class HttpBLMiddleware:
         self.classification = getattr(settings, 'HTTPBL_CLASS', 7)
         self.quicklink = getattr(settings, 'HTTPBL_QUICKLINK', False)
         self.logging = getattr(settings, 'HTTBL_LOG_BLOCKED', True)
+        self.ignore_methods = getattr(settings, 'HTTPBL_IGNORE_REQUEST_METHODS', ())
 
     def is_threat(self, request):
         """
@@ -52,7 +53,7 @@ class HttpBLMiddleware:
         return False
 
     def process_request(self, request):
-        if self.is_threat(request):
+        if request.method not in self.ignore_methods and self.is_threat(request):
             if self.logging:
                 log = HttpBLLog(ip=self.ip, user_agent=request.META.get('HTTP_USER_AGENT'),
                                 result=self.result)
