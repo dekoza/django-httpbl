@@ -33,6 +33,7 @@ Please refer to http://www.projecthoneypot.org/httpbl_api.php to fine tune your 
 * HTTPBL_QUICKLINK is a string containing your QuickLink. This is optional but you are strongly encouraged to use it as it helps catch new spammers.
 
 Host will be identified as spammer and blocked if:
+* the request method is not in `HTTPBL_IGNORE_REQUEST_METHODS` (default empty tuple); you could for example always allow `GET` requests, and block `POST` (and other) requests.
 * the number of days since it was last seen in a honeypot is lower than value of HTTPBL_AGE (default 14)
 * and host's threat score is greater than value of HTTPBL_THREAT (default 30)
 * and host's classification bitset contains the bitset set in HTTPBL_CLASS (default 7).

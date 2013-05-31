@@ -25,6 +25,7 @@ class HttpBLMiddleware:
         self.threat = getattr(settings, 'HTTPBL_THREAT', 30)
         self.type_ = getattr(settings, 'HTTPBL_CLASS', 7)
         self.quicklink = getattr(settings, 'HTTPBL_QUICKLINK', False)
+        self.ignore_methods = getattr(settings, 'HTTPBL_IGNORE_REQUEST_METHODS', ())
 
     def is_threat(self, request):
         query = '.'.join([self.api_key] +
@@ -49,7 +50,7 @@ class HttpBLMiddleware:
                 ip, age, threat, type_)
 
     def process_request(self, request):
-        if self.is_threat(request):
+        if request.method not in self.ignore_methods and self.is_threat(request):
             logger.warning('Blocked request from %s', request.META.get('REMOTE_ADDR'))
 
             if self.quicklink:
