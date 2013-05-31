@@ -1,10 +1,14 @@
 #coding: utf-8
+import socket
+import logging
+
 from django.conf import settings
 from django.http import HttpResponseNotFound, HttpResponsePermanentRedirect
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext as _
-from httpbl.models import HttpBLLog
-import socket
+
+
+logger = logging.getLogger(__name__)
 
 
 class HttpBLMiddleware:
@@ -19,53 +23,37 @@ class HttpBLMiddleware:
             raise ImproperlyConfigured(_("Missing HTTPBL_KEY. Register on http://projecthoneypot.org to get one."))
         self.age = getattr(settings, 'HTTPBL_AGE', 14)
         self.threat = getattr(settings, 'HTTPBL_THREAT', 30)
-        self.classification = getattr(settings, 'HTTPBL_CLASS', 7)
+        self.type_ = getattr(settings, 'HTTPBL_CLASS', 7)
         self.quicklink = getattr(settings, 'HTTPBL_QUICKLINK', False)
-        self.logging = getattr(settings, 'HTTBL_LOG_BLOCKED', True)
 
     def is_threat(self, request):
-        """
-          Since I'm not quite sure if the same instance is used to process request and template response,
-          I chose to leave the main part out.
-          """
-        if self.api_key:
-            self.ip = request.META.get('REMOTE_ADDR')
-            self.iplist = self.ip.split('.')
-            self.iplist.reverse()
+        query = '.'.join([self.api_key] +
+                         request.META.get('REMOTE_ADDR').split('.')[::-1] +
+                         ['dnsbl.httpbl.org'])
 
-            domain = 'dnsbl.httpbl.org'
+        try:
+            response = socket.gethostbyname(query)
+        except socket.gaierror:
+            return False  # error is raised for non-spammy visitors
 
-            query = self.api_key + "." + ".".join(self.iplist) + "." + domain
+        error, age, threat, type_ = [int(x) for x in response.split('.')]
 
-            try:
-                self.result = socket.gethostbyname(query)
-            except socket.gaierror:
-                return False
+        assert error == 127, "Incorrect API Usage"
 
-            resultlist = self.result.split('.')
-
-            self.suspicious = int(resultlist[3]) > 0
-
-            if int(resultlist[3]) & self.classification > 0 and int(resultlist[1]) <= self.age and int(
-                resultlist[2]) >= self.threat:
-                return True
-        return False
+        if age < self.age and threat >= self.threat and type_ & self.type_:
+            logger.info('%s is a threat (age: %s, threat: %s, type=%s)',
+                ip, age, threat, type_)
+            return True
+        elif type_ > 0:
+            logger.info('%s is suspicious (age: %s, threat: %s, type=%s)',
+                ip, age, threat, type_)
 
     def process_request(self, request):
         if self.is_threat(request):
-            if self.logging:
-                log = HttpBLLog(ip=self.ip, user_agent=request.META.get('HTTP_USER_AGENT'),
-                                result=self.result)
-                log.save()
+            logger.warning('Blocked request from %s', request.META.get('REMOTE_ADDR'))
 
             if self.quicklink:
                 return HttpResponsePermanentRedirect(self.quicklink)
             else:
                 return HttpResponseNotFound('<h1>Not Found</h1>')
         return None
-
-    def process_template_response(self, request, response):
-        if not self.is_threat(request):
-            response.context_data['httpbl_suspicious'] = getattr(self, 'suspicious', False)
-            response.context_data['httpbl_quicklink'] = getattr(self, 'quicklink', False)
-        return response

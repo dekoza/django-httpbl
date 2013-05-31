@@ -22,6 +22,8 @@ These context variables are:
 * 'httpbl_suspicious' if the host passed the test but was marked as suspicious.
 * 'httpbl_quicklink' is simply the URL you put in your settings (no need for separate templatetag then ;)
 
+Information is logged using Pythons' built-in logging library. Subscribe to the logger `httpbl` to see requests being blocked or marked as suspicious.
+
 Settings
 --------
 
@@ -29,7 +31,6 @@ Please refer to http://www.projecthoneypot.org/httpbl_api.php to fine tune your 
 
 * HTTPBL_KEY is a string containing your API Key from Project Honeypot.
 * HTTPBL_QUICKLINK is a string containing your QuickLink. This is optional but you are strongly encouraged to use it as it helps catch new spammers.
-* If you do NOT want to log all blocked hosts you should set HTTPBL_LOG_BLOCKED to False (default: True)
 
 Host will be identified as spammer and blocked if:
 * the number of days since it was last seen in a honeypot is lower than value of HTTPBL_AGE (default 14)
